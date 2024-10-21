@@ -3,7 +3,6 @@ from app.repositories.employer_repository import EmployerRepository
 from app import db
 from app.services.log_service import LogService
 
-
 class EmployerService:
     @staticmethod
     def get_employer_by_unique_identifier(identifier):
@@ -38,7 +37,7 @@ class EmployerService:
             EmployerRepository.save(new_employer)
 
             # Log the action
-            LogService.log_action(f"Employer registered {new_employer.company_name}")
+            LogService.log_action(f"Employer '{new_employer.company_name}' registered by admin")
 
             return {"message": "Employer registered successfully", "employer": new_employer.to_dict()}, 201
         except Exception as e:
@@ -57,9 +56,9 @@ class EmployerService:
         employer.phone = data.get('phone', employer.phone)
         employer.about = data.get('about', employer.about)
         
+        
         try:
-            updated_employer = EmployerRepository.save(employer)
-            LogService.log_action(f"Employer updated {employer.company_name}")
+            updated_employer = EmployerRepository.save(employer)      
             return updated_employer.to_dict()  # Return as dictionary
         except Exception as e:
             db.session.rollback()
@@ -74,7 +73,7 @@ class EmployerService:
         
         try:
             EmployerRepository.delete(employer_id)  # Pass employer_id here instead of employer object
-            LogService.log_action(f"Employer account deleted {employer.company_name}")
+            LogService.log_action(f"Employer '{employer.company_name}' deleted by admin")
             return {"message": "Employer account deleted successfully"}, 200
         except Exception as e:
             db.session.rollback()
@@ -97,7 +96,7 @@ class EmployerService:
         if not employer:
             return {"error": "Employer not found"}, 404
         
-        LogService.log_action(f"Admin viewed employer {employer.company_name}")
+        LogService.log_action(f"Admin viewed employer '{employer.company_name}'")
         return employer.to_dict()
 
     @staticmethod

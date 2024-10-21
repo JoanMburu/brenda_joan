@@ -21,7 +21,7 @@ class MemberService:
         MemberRepository.save(new_member)
 
         # Log the action
-        LogService.log_action(f"Admin created member {new_member.name}")
+        LogService.log_action(f"Admin created member '{new_member.name}'")
 
         return new_member
 
@@ -45,7 +45,7 @@ class MemberService:
         MemberRepository.save(member)
 
         # Log the action
-        LogService.log_action(f"Admin updated member {member.name}")
+        LogService.log_action(f"Admin updated member '{member.name}'")
         return member
 
     @staticmethod
@@ -58,7 +58,7 @@ class MemberService:
         # Save the updated member
         MemberRepository.save(member)
         # Log the action
-        LogService.log_action(f"Admin soft-deleted member {member.name}")
+        LogService.log_action(f"Admin soft-deleted member '{member.name}'")
         return member
 
     @staticmethod
@@ -71,7 +71,7 @@ class MemberService:
         # Save the restored member
         MemberRepository.save(member)
         # Log the action
-        LogService.log_action(f"Admin restored member {member.name}")
+        LogService.log_action(f"Admin restored member '{member.name}'")
         return member
 
     @staticmethod
@@ -84,5 +84,32 @@ class MemberService:
         member.role = new_role
         MemberRepository.save(member)
         # Log the action
-        LogService.log_action(f"Admin changed {member} to {member.role}")
+        LogService.log_action(f"Admin changed role of '{member.name}' to '{new_role}'")
         return member
+
+    @staticmethod
+    def get_all_members():
+        """ Get all active members """
+        members = MemberRepository.get_all_active_members()
+        # Log the action
+        LogService.log_action("Admin viewed all active members")
+        return [member.to_dict() for member in members]
+
+    @staticmethod
+    def get_inactive_members():
+        """ Get all inactive (soft-deleted) members """
+        members = MemberRepository.get_all_inactive_members()
+        # Log the action
+        LogService.log_action("Admin viewed all inactive members")
+        return [member.to_dict() for member in members]
+
+    @staticmethod
+    def get_member_by_id(member_id):
+        """ Get a specific member by their ID """
+        member = MemberRepository.get_member_by_id(member_id)
+        if not member:
+            raise BadRequest(f"Member with ID {member_id} not found")
+
+        # Log the action
+        LogService.log_action(f"Admin viewed member '{member.name}'")
+        return member.to_dict()

@@ -82,3 +82,8 @@ class MemberRepository:
     def get_member_by_email(email):
         """Fetch a member by their email"""
         return Member.query.filter_by(email=email).first()
+
+    @staticmethod
+    def get_all_members():
+        """Retrieve all members from the database."""
+        return Member.query.filter_by(is_active=True).all()  

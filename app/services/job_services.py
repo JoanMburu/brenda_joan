@@ -28,7 +28,7 @@ class JobService:
             )
 
             # Log the action
-            LogService.log_action(f"Employer created a job {job.title}")
+            LogService.log_action(f"Job '{job.title}' created by employer ID {employer_id}")
 
             return job.to_dict(), 201  # Return job as dictionary and status code
         except Exception as e:
@@ -51,10 +51,8 @@ class JobService:
         try:
             updated_job = JobRepository.update_job(job_id, data)
             if updated_job:
-
                 # Log the action
-                LogService.log_action(f"Employer updated a job {job.title}")
-
+                LogService.log_action(f"Job '{job.title}' updated by employer ID {job.employer_id}")
                 return updated_job.to_dict(), 200  # Return updated job
             return {"error": "Failed to update job"}, 400
         except Exception as e:
@@ -70,10 +68,8 @@ class JobService:
         try:
             deleted_job = JobRepository.delete_job(job_id)
             if deleted_job:
-
                 # Log the action
-                LogService.log_action(f"Admin deleted a job {job.title}")
-
+                LogService.log_action(f"Admin deleted job '{job.title}'")
                 return {"message": "Job deleted successfully"}, 200
             return {"error": "Failed to delete job"}, 400
         except Exception as e:
@@ -95,25 +91,20 @@ class JobService:
         try:
             deleted_job = JobRepository.delete_job(job_id)
             if deleted_job:
-
                 # Log the action
-                LogService.log_action(f"Employer deleted a job {job.title}")
-
+                LogService.log_action(f"Employer ID {employer_id} deleted job '{job.title}'")
                 return {"message": "Job deleted successfully"}, 200  # Job deleted successfully
             return {"error": "Failed to delete job"}, 400  # Failed to delete job
         except Exception as e:
             raise Exception(f"Failed to delete job: {str(e)}")
-        
 
     @staticmethod
     def get_job_by_id(job_id):
         """Retrieve a job by its ID."""
         job = JobRepository.get_job_by_id(job_id)
         if job:
-
             # Log the action
-            LogService.log_action(f"Job viewed {job.title}")
-
+            LogService.log_action(f"Job '{job.title}' viewed")
             return job.to_dict(), 200  # Return job as dictionary
         return {"error": "Job not found"}, 404
 
@@ -123,8 +114,7 @@ class JobService:
         try:
             jobs = JobRepository.get_all_jobs()
             # Log the action
-            LogService.log_action(f"Viewed all jobs")
-
+            LogService.log_action("Viewed all jobs")
             return [job.to_dict() for job in jobs], 200  # Return list of jobs as dictionaries
         except Exception as e:
             return {"error": f"Failed to retrieve jobs: {str(e)}"}, 500
@@ -134,10 +124,8 @@ class JobService:
         """Retrieve all jobs posted by a specific employer."""
         try:
             jobs = JobRepository.get_jobs_by_employer(employer_id)
-
             # Log the action
-            LogService.log_action(f"Admin retrieved employer's jobs")
-
+            LogService.log_action(f"Employer ID {employer_id} viewed all their jobs")
             return [job.to_dict() for job in jobs], 200  # Return list of jobs as dictionaries
         except Exception as e:
             return {"error": f"Failed to retrieve employer's jobs: {str(e)}"}, 500

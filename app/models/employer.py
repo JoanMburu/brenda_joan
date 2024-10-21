@@ -17,7 +17,7 @@ class Employer(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)  # Updated when record is modified
     
     # Relationship with jobs
-    jobs = db.relationship('Job', backref='employer', lazy=True)
+    jobs = db.relationship('Job', backref='employer', lazy=True, cascade="all, delete-orphan")
     
 
     def __init__(self, company_name, email, phone, about, password):

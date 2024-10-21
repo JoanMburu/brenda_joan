@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.employer_services import EmployerService
@@ -6,7 +6,7 @@ from app.utils.authentication import authenticate_admin, authenticate_employer
 from app.models.employer import Employer
 from app import db 
 from datetime import datetime
-
+from app.services.log_service import LogService
 
 class EmployerRegistrationResource(Resource):
     def post(self):
@@ -55,12 +55,14 @@ class EmployerAdminResource(Resource):
         """Admin gets an employer account by ID or all employers if no ID is provided."""
         if employer_id is None:
             # Get all employers from the service
-            employers = EmployerService.get_all_employers()
+            employers = Employer.query.all()
             # Ensure that employers is a list of Employer objects
+            LogService.log_action("Admin viewed all employers")
             return [employer.to_dict() for employer in employers], 200  # Serialize each employer
         else:
             employer = EmployerService.get_employer_by_id(employer_id)
             if employer:
+                LogService.log_action(f"Admin viewed employer {employer_id}")
                 return employer.to_dict(), 200  # Serialize the specific employer
             else:
                 return {'message': 'Employer not found'}, 404  # Handle not found case
@@ -90,13 +92,15 @@ class EmployerAdminResource(Resource):
             existing_employer = Employer.query.filter_by(email=new_email).first()
             if existing_employer and existing_employer.id != employer_id:
                 return {"message": "Email already in use by another employer"}, 400
-
+        
         # Update the employer's details
         employer.company_name = data.get('company_name', employer.company_name)
         employer.email = data.get('email', employer.email)
         employer.phone = data.get('phone', employer.phone)
         employer.about = data.get('about', employer.about)
         employer.updated_at = datetime.utcnow()  # Ensure to import datetime if you haven't already
+
+        LogService.log_action(f"Admin updated employer {employer.company_name}")
 
         try:
             db.session.commit()
