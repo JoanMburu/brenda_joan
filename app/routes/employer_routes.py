@@ -1,35 +1,15 @@
-
-
-from flask import Blueprint, request, jsonify
+from flask import Blueprint
 from flask_restful import Api
-from app.controllers.employer_controller import EmployerResource
-from app.utils.validations import validate_required_fields
-from flask_jwt_extended import jwt_required
-from app.services.employer_services import EmployerService
-from app.utils.authentication import authenticate_admin
+from app.controllers.employer_controller import EmployerSelfResource, EmployerAdminResource, EmployerRegistrationResource
 
 employer_bp = Blueprint('employer', __name__)
 api = Api(employer_bp)
 
-@employer_bp.route('/', methods=['POST'])
-def register_employer():
-    data = request.get_json()
-    valid, error = validate_required_fields(data, ['company_name', 'email', 'phone', 'about', 'password'])
-    if not valid:
-        return jsonify({"error": error}), 400
-    return EmployerService.create_employer(data)
+# Routes for employers to manage their own account
+api.add_resource(EmployerSelfResource, '/self')  # For employers to get/update their own account
 
-@employer_bp.route('/', methods=['GET'])
-@jwt_required()
-@authenticate_admin()
-def get_all_employers():
-    return EmployerService.get_all_employers()
+# Get employers
+api.add_resource(EmployerAdminResource, '/admin', '/admin/<int:employer_id>')  
 
-@employer_bp.route('/<int:id>', methods=['GET'])
-@jwt_required()
-@authenticate_admin()
-def get_employer(id):
-    return EmployerService.get_employer_by_id(id)
-
-# Define routes for Employer
-api.add_resource(EmployerResource, '/employer')
+# Route for employer registration
+api.add_resource(EmployerRegistrationResource, '/register')

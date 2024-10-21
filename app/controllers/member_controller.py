@@ -29,12 +29,15 @@ class MemberResource(Resource):
         current_user = get_jwt_identity()
         member = Member.query.get_or_404(id)
 
-        if current_user['role'] not in ['admin', 'supervisor']:
+        if current_user['role'] not in ['admin', 'supervisor','member']:
             return {"error": "Unauthorized"}, 403
 
         # Allow members to only view their own details if role is supervisor or member
         if current_user['role'] == 'supervisor' and current_user['id'] != id:
             return {"error": "Unauthorized"}, 403
+        
+        if current_user['role'] == 'member' and current_user['id'] != id:
+            return {"error": "Unauthorized"}, 403        
 
         return member.to_dict(), 200
 
@@ -63,11 +66,11 @@ class MemberResource(Resource):
         if name:
             member.name = name
         if phone:
-            if Member.query.filter_by(phone=phone).first():
+            if Member.query.filter_by(phone=phone).first() and member.phone != phone:
                 return {"error": "Phone number already exists"}, 400
             member.phone = phone
         if email:
-            if Member.query.filter_by(email=email).first():
+            if Member.query.filter_by(email=email).first() and member.email != email:
                 return {"error": "Email already exists"}, 400
             member.email = email
 

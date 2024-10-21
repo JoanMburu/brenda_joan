@@ -6,7 +6,7 @@ class EmployerRepository:
     @staticmethod
     def find_by_identifier(identifier):
         """Find an employer by a unique identifier like email or username."""
-        return Employer.query.filter((Employer.email == identifier) | (Employer.identifier == identifier)).first()
+        return Employer.query.filter_by(email=identifier).first()
 
     @staticmethod
     def find_by_id(employer_id):
@@ -40,3 +40,14 @@ class EmployerRepository:
     @staticmethod
     def find_by_email_or_phone(email, phone):
         return Employer.query.filter((Employer.email == email) | (Employer.phone == phone)).first()
+
+    @staticmethod
+    def delete(employer_id):
+        """Delete an employer by their ID."""
+        employer = EmployerRepository.find_by_id(employer_id)
+        if employer:
+            db.session.delete(employer)
+            db.session.commit()
+            return {"message": "Employer deleted successfully"}, 204  
+        else:
+            return {"message": "Employer not found"}, 404

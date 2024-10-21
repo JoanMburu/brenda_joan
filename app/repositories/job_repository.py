@@ -1,4 +1,3 @@
-
 from app.models.job import Job
 from app import db
 
@@ -24,6 +23,7 @@ class JobRepository:
         if not job:
             return None
         
+        # Update job fields with provided data
         job.title = data.get('title', job.title)
         job.description = data.get('description', job.description)
         job.salary = data.get('salary', job.salary)
@@ -34,14 +34,15 @@ class JobRepository:
 
     @staticmethod
     def delete_job(job_id):
-        """Delete a job."""
-        job = Job.query.get(job_id)
-        if job:
-            db.session.delete(job)
-            db.session.commit()
-            return job
-        return None
-    
+        """Delete a job by ID."""
+        job = JobRepository.get_job_by_id(job_id)
+        if not job:
+            return None  # Job not found
+
+        # Delete the job
+        db.session.delete(job)
+        db.session.commit()
+        return job  # Return the deleted job
 
     @staticmethod
     def get_job_by_id(id):

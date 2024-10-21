@@ -1,6 +1,7 @@
 from app.models.member import Member
 from app.repositories.member_repository import MemberRepository
 from werkzeug.exceptions import BadRequest
+from app.services.log_service import LogService
 
 class MemberService:
     @staticmethod
@@ -18,6 +19,10 @@ class MemberService:
         
         # Save the new member to the database
         MemberRepository.save(new_member)
+
+        # Log the action
+        LogService.log_action(f"Admin created member {new_member.name}")
+
         return new_member
 
     @staticmethod
@@ -38,6 +43,9 @@ class MemberService:
 
         # Save updated member to the database
         MemberRepository.save(member)
+
+        # Log the action
+        LogService.log_action(f"Admin updated member {member.name}")
         return member
 
     @staticmethod
@@ -49,6 +57,8 @@ class MemberService:
         member.is_active = False
         # Save the updated member
         MemberRepository.save(member)
+        # Log the action
+        LogService.log_action(f"Admin soft-deleted member {member.name}")
         return member
 
     @staticmethod
@@ -60,6 +70,8 @@ class MemberService:
         member.is_active = True
         # Save the restored member
         MemberRepository.save(member)
+        # Log the action
+        LogService.log_action(f"Admin restored member {member.name}")
         return member
 
     @staticmethod
@@ -71,4 +83,6 @@ class MemberService:
         # Update the role
         member.role = new_role
         MemberRepository.save(member)
+        # Log the action
+        LogService.log_action(f"Admin changed {member} to {member.role}")
         return member

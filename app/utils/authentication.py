@@ -13,12 +13,14 @@ def authenticate_role(allowed_roles):
         def decorator(*args, **kwargs):
             current_user = get_jwt_identity()
             
-              
+            if not current_user:
+                return jsonify({"error": "Unauthorized access. No user identity found."}), 401
+            
             if 'role' not in current_user:
                 return jsonify({"error": "Role not found in user information"}), 403
             
             if current_user['role'] not in allowed_roles:
-                return jsonify({"error": "Unauthorized"}), 403
+                return jsonify({"error": f"Unauthorized. You must have one of the following roles: {', '.join(allowed_roles)}"}), 403
 
             return fn(*args, **kwargs)
         return decorator
@@ -32,3 +34,6 @@ def authenticate_supervisor():
 
 def authenticate_employer():
     return authenticate_role(['employer'])
+
+def authenticate_member():
+    return authenticate_role(['member'])

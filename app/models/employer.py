@@ -36,8 +36,8 @@ class Employer(db.Model):
             "email": self.email,
             "phone": self.phone,
             "about": self.about,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "created_at": self.created_at.isoformat() if self.created_at else None,  # Serialize datetime
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,  # Serialize datetime
             # Not returning password_hash for security reasons
             "jobs": [job.to_dict() for job in self.jobs] if self.jobs else []
         }

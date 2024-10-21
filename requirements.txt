@@ -5,4 +5,5 @@ Flask-SQLAlchemy
 Flask-Migrate
 bcrypt
 Faker
+flask-mail
 
