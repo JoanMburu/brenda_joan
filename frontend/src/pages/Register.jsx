@@ -36,7 +36,7 @@ const Register = () => {
     e.preventDefault();
     const endpoint = userType === 'employer' 
       ? 'http://localhost:5000/api/employers/register' 
-      : 'http://localhost:5000/api/members/register';
+      : 'http://localhost:5000/api/member/register';
 
     const requestData = userType === 'employer'
       ? { 

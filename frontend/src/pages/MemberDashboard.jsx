@@ -15,11 +15,9 @@ const MemberDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('date'); // default sort option
 
-  if (!user || !token) {
-    return <Navigate to="/login" replace />;
-  }
-
   useEffect(() => {
+    if (!token) return;
+
     const fetchApplications = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/member/applications', {
@@ -57,6 +55,11 @@ const MemberDashboard = () => {
     fetchApplications();
     fetchSavedJobs();
   }, [token]);
+
+  // Redirect if user or token is not available
+  if (!user || !token) {
+    return <Navigate to="/login" replace />;
+  }
 
   // Filter savedJobs, ensuring each job has a title before calling toLowerCase
   const filteredJobs = savedJobs.filter(job =>

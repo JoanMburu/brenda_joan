@@ -8,8 +8,7 @@ import { Navigate } from 'react-router-dom';
 const RecruiterDashboard = () => {
   const { user } = useUserContext();
 
-  // Redirect to login if user is not logged in
-  if (!user) {
+  if (!user || user.role !== 'employer') {
     return <Navigate to="/login" replace />;
   }
 
