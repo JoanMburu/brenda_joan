@@ -13,7 +13,7 @@ const MemberDashboard = () => {
   const [showApplications, setShowApplications] = useState(true);
   const [showSavedJobs, setShowSavedJobs] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState('date'); // default sort option
+  const [sortOption, setSortOption] = useState('date');
 
   useEffect(() => {
     if (!token) return;
@@ -26,6 +26,7 @@ const MemberDashboard = () => {
           },
           withCredentials: true,
         });
+        console.log("Applications Data:", response.data.applications);
         setApplications(response.data.applications || []);
       } catch (error) {
         console.error('Error fetching applications:', error);
@@ -43,6 +44,7 @@ const MemberDashboard = () => {
           },
           withCredentials: true,
         });
+        console.log("Saved Jobs Data:", response.data.saved_jobs);
         setSavedJobs(response.data.saved_jobs || []);
       } catch (error) {
         console.error('Error fetching saved jobs:', error);
@@ -56,21 +58,32 @@ const MemberDashboard = () => {
     fetchSavedJobs();
   }, [token]);
 
-  // Redirect if user or token is not available
   if (!user || !token) {
     return <Navigate to="/login" replace />;
   }
 
-  // Filter savedJobs, ensuring each job has a title before calling toLowerCase
+  const handleRemoveSavedJob = async (jobId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/member/saved-jobs/${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      });
+      setSavedJobs((prevJobs) => prevJobs.filter((job) => job.job_id !== jobId));
+    } catch (error) {
+      console.error('Error removing saved job:', error);
+    }
+  };
+
   const filteredJobs = savedJobs.filter(job =>
-    job.title && job.title.toLowerCase().includes(searchTerm.toLowerCase())
+    job.job_title && job.job_title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Sort applications, with additional check for undefined status
   const sortedApplications = applications.sort((a, b) => {
-    if (sortOption === 'date') return new Date(b.date) - new Date(a.date);
+    if (sortOption === 'date') return new Date(b.created_at) - new Date(a.created_at);
     if (sortOption === 'status') {
-      const statusA = a.status || ''; // Default to empty string if undefined
+      const statusA = a.status || '';
       const statusB = b.status || '';
       return statusA.localeCompare(statusB);
     }
@@ -82,10 +95,9 @@ const MemberDashboard = () => {
       <Sidebar userRole={user.role} />
       <div className="p-8 bg-gray-100 dark:bg-gray-900 min-h-screen ml-64 transition duration-300 ease-in-out">
         <h1 className="text-4xl font-extrabold text-blue-900 dark:text-blue-400 mb-8">
-          Welcome, {user.name}!
+          Welcome, {user.name || "User"}!
         </h1>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-col items-center text-center">
             <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">Applications</h2>
@@ -97,12 +109,11 @@ const MemberDashboard = () => {
           </div>
           <div className="p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-col items-center text-center">
             <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">New Messages</h2>
-            <p className="text-4xl font-extrabold text-red-600 dark:text-red-400">3</p> {/* Placeholder count */}
+            <p className="text-4xl font-extrabold text-red-600 dark:text-red-400">3</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Applications Section */}
           <div className="p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200">My Applications</h2>
@@ -114,7 +125,6 @@ const MemberDashboard = () => {
               </button>
             </div>
 
-            {/* Sorting Options */}
             <div className="flex justify-between mb-4">
               <p className="text-gray-600 dark:text-gray-400">Sort by:</p>
               <select
@@ -134,7 +144,9 @@ const MemberDashboard = () => {
                     <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 mb-3 rounded-lg shadow-sm">
                       <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="text-lg font-semibold dark:text-gray-100">{app.job_title || app.job?.title || 'N/A'}</h3>
+                          <h3 className="text-lg font-semibold dark:text-gray-100">
+                            {app.job_title || "Job Title Unavailable"}
+                          </h3>
                           <p
                             className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${
                               app.status === 'Accepted' ? 'bg-green-200 text-green-800' :
@@ -149,12 +161,6 @@ const MemberDashboard = () => {
                           View Details
                         </button>
                       </div>
-                      <div className="h-1 mt-3 bg-gray-200 rounded">
-                        <div
-                          className={`h-full rounded ${app.status === 'Accepted' ? 'bg-green-500' : 'bg-yellow-500'}`}
-                          style={{ width: `${app.status === 'Accepted' ? 100 : app.status === 'Pending' ? 50 : 25}%` }}
-                        ></div>
-                      </div>
                     </div>
                   ))
                 ) : (
@@ -163,8 +169,7 @@ const MemberDashboard = () => {
               ) : null}
             </div>
           </div>
-          
-          {/* Saved Jobs Section */}
+
           <div className="p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200">Saved Jobs</h2>
@@ -176,7 +181,6 @@ const MemberDashboard = () => {
               </button>
             </div>
 
-            {/* Search and Filter */}
             <input
               type="text"
               placeholder="Search saved jobs..."
@@ -188,13 +192,16 @@ const MemberDashboard = () => {
             <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
               {showSavedJobs ? (
                 filteredJobs.length > 0 ? (
-                  filteredJobs.map((job, index) => (
-                    <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 mb-3 rounded-lg shadow-sm">
+                  filteredJobs.map((job) => (
+                    <div key={job.id} className="p-4 bg-gray-50 dark:bg-gray-700 mb-3 rounded-lg shadow-sm">
                       <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="text-lg font-semibold dark:text-gray-100">{job.title || job.job_title || 'N/A'}</h3>
+                          <h3 className="text-lg font-semibold dark:text-gray-100">{job.job_title}</h3>
                         </div>
-                        <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        <button
+                          onClick={() => handleRemoveSavedJob(job.job_id)}
+                          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                        >
                           Remove
                         </button>
                       </div>

@@ -17,9 +17,6 @@ export const UserProvider = ({ children }) => {
 
     localStorage.setItem('user', JSON.stringify(userWithoutToken));
     localStorage.setItem('token', access_token);
-
-    console.log("Role stored in UserContext:", userWithoutToken.role);  // Debug log
-    console.log("Token stored in UserContext:", access_token);  // Debug log
   };
 
   const logout = () => {

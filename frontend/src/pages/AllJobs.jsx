@@ -1,17 +1,14 @@
 // src/pages/AllJobs.jsx
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import { useUserContext } from '../context/UserContext';
 
 const AllJobs = () => {
   const { token } = useUserContext();
+  const navigate = useNavigate(); // Initialize navigate function
   const [jobDetails, setJobDetails] = useState([]); // Array to store jobs with employer names
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Comment out the unused `jobs` variable to prevent the warning
-  // eslint-disable-next-line no-unused-vars
-  // const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -26,7 +23,6 @@ const AllJobs = () => {
         console.log('API Response:', response.data);
 
         if (Array.isArray(response.data)) {
-          // setJobs(response.data); // Remove if you don't need `jobs`
           await fetchEmployerNames(response.data);
         } else {
           console.error('Unexpected response structure:', response.data);
@@ -50,7 +46,6 @@ const AllJobs = () => {
                   withCredentials: true,
                 }
               );
-
               return { ...job, employer_name: employerResponse.data.name };
             } catch (error) {
               console.error(`Error fetching employer for job ${job.id}:`, error);
@@ -69,6 +64,10 @@ const AllJobs = () => {
   const filteredJobs = jobDetails.filter((job) =>
     job.title && job.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleApplyClick = (jobId) => {
+    navigate(`/apply/${jobId}`); // Redirect to the application form with the job ID
+  };
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
@@ -110,10 +109,19 @@ const AllJobs = () => {
                 <strong>Posted:</strong> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'N/A'}
               </p>
 
+              {/* View Details button (optional, for additional job details) */}
               <button
                 className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
               >
                 View Details
+              </button>
+
+              {/* Apply button */}
+              <button
+                onClick={() => handleApplyClick(job.id)} // Apply button to navigate to application form
+                className="mt-2 w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition"
+              >
+                Apply
               </button>
             </div>
           ))

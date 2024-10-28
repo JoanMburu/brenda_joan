@@ -18,22 +18,17 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post('http://localhost:5000/api/auth/login', formData);
-      const { access_token, id, role } = response.data;
+      const { access_token, id, role, name } = response.data;
 
-      const userData = { id, role, access_token };
+      const userData = { id, role, access_token, name };
 
-      console.log("Role received from API:", role); // Debugging log for role
-      login(userData);  // Save user data and token globally
+      login(userData);
 
-      // Enhanced debugging
       if (role === 'admin') {
-        console.log("Navigating to admin dashboard...");
         navigate('/admin-dashboard', { replace: true });
       } else if (role === 'member') {
-        console.log("Navigating to member dashboard...");
         navigate('/member-dashboard', { replace: true });
       } else if (role === 'employer') {
-        console.log("Navigating to recruiter dashboard...");
         navigate('/recruiter-dashboard', { replace: true });
       } else {
         console.error("Unexpected role; navigation not defined:", role);

@@ -1,4 +1,5 @@
 # auth_controller.py
+
 from flask import request, Blueprint
 from flask_restful import Resource, Api
 from app.models.member import Member
@@ -23,11 +24,12 @@ class AuthResource(Resource):
             # Generate access token
             access_token = create_access_token(identity={"id": user.id, "role": user.role})
             
-            # Return token, id, and role directly in the response
+            # Return token, id, role, and name (if member)
             return {
                 "access_token": access_token,
                 "id": user.id,
-                "role": user.role
+                "role": user.role,
+                "name": getattr(user, 'name', None)  # Return name if available (for members)
             }, 200
 
         return {"error": "Invalid credentials"}, 401

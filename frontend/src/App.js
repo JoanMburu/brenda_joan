@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import MemberDashboard from './pages/MemberDashboard';
 import RecruiterDashboard from './pages/RecruiterDashboard';
 import RoleBasedRoute from './components/RoleBasedRoute';
+import JobApplicationForm from './components/JobApplicationForm';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/admin-dashboard" element={<RoleBasedRoute component={AdminDashboard} roles={['admin']} />} />
             <Route path="/member-dashboard" element={<RoleBasedRoute component={MemberDashboard} roles={['member']} />} />
             <Route path="/recruiter-dashboard" element={<RoleBasedRoute component={RecruiterDashboard} roles={['recruiter', 'employer']} />} />
+            <Route path="/apply/:jobId" element={<JobApplicationForm />} />
           </Routes>
         </div>
       </Router>

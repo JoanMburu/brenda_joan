@@ -1,5 +1,6 @@
 from app.models.job_application import JobApplication
 from app import db
+from app.models.job import Job
 
 class JobApplicationRepository:
     @staticmethod
@@ -21,5 +22,11 @@ class JobApplicationRepository:
 
     @staticmethod
     def get_applications_by_member(member_id):
-        # Query to fetch all applications made by a specific member
-        return JobApplication.query.filter_by(member_id=member_id).all()
+        """Retrieve all applications made by a specific member, including job titles."""
+        # Query to join JobApplication with Job to fetch job titles
+        applications = (
+            db.session.query(JobApplication, Job.title.label("job_title"))
+            .join(Job, JobApplication.job_id == Job.id)
+            .filter(JobApplication.member_id == member_id)
+            .all()
+        )
