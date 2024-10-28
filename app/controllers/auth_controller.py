@@ -1,8 +1,11 @@
+# auth_controller.py
 from flask import request, Blueprint
 from flask_restful import Resource, Api
 from app.models.member import Member
-from app.models.employer import Employer  # Import Employer model
+from app.models.employer import Employer
 from flask_jwt_extended import create_access_token
+from app.services.employer_services import EmployerService
+from werkzeug.exceptions import BadRequest
 
 auth_bp = Blueprint('auth_bp', __name__)
 auth_api = Api(auth_bp)
@@ -13,20 +16,21 @@ class AuthResource(Resource):
         email = data.get('email')
         password = data.get('password')
 
-        # Try authenticating member first
-        member = Member.query.filter_by(email=email).first()
-        if member and member.check_password(password):
-            if member.role in ['admin', 'supervisor','member']:
-                access_token = create_access_token(identity={"id": member.id, "role": member.role})
-                return {"access_token": access_token}, 200
+        # Authenticate as either member or employer
+        user = Member.query.filter_by(email=email).first() or Employer.query.filter_by(email=email).first()
 
-        # If not member, try authenticating employer
-        employer = Employer.query.filter_by(email=email).first()
-        if employer and employer.check_password(password):
-            access_token = create_access_token(identity={"id": employer.id, "role": 'employer','email': employer.email})
-            return {"access_token": access_token}, 200
+        if user and user.check_password(password):
+            # Generate access token
+            access_token = create_access_token(identity={"id": user.id, "role": user.role})
+            
+            # Return token, id, and role directly in the response
+            return {
+                "access_token": access_token,
+                "id": user.id,
+                "role": user.role
+            }, 200
 
-        return {"error": "Invalid credentials or access denied"}, 401
+        return {"error": "Invalid credentials"}, 401
 
-# Add the resource to the API
+# Register the AuthResource to the API
 auth_api.add_resource(AuthResource, '/login')

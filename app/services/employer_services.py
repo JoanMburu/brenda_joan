@@ -23,13 +23,12 @@ class EmployerService:
             return {"error": "Email or Phone already exists"}, 400
 
         try:
-            # Create the new employer instance
+            # Create the new employer instance without directly setting `password`
             new_employer = Employer(
                 company_name=data['company_name'],
                 email=data['email'],
                 phone=data['phone'],
-                about=data['about'],
-                password=data['password']  # Password will be hashed inside the model
+                about=data['about']
             )
             new_employer.set_password(data['password'])  # Ensure password is hashed
         
@@ -55,7 +54,6 @@ class EmployerService:
         employer.email = data.get('email', employer.email)
         employer.phone = data.get('phone', employer.phone)
         employer.about = data.get('about', employer.about)
-        
         
         try:
             updated_employer = EmployerRepository.save(employer)      
@@ -117,8 +115,7 @@ class EmployerService:
                 company_name=data['company_name'],
                 email=data['email'],
                 phone=data['phone'],
-                about=data['about'],
-                password=data['password'] 
+                about=data['about']
             )
             new_employer.set_password(data['password'])  # Hash the password
 

@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.employer_services import EmployerService
@@ -7,12 +7,27 @@ from app.models.employer import Employer
 from app import db 
 from datetime import datetime
 from app.services.log_service import LogService
+from werkzeug.exceptions import BadRequest
 
 class EmployerRegistrationResource(Resource):
     def post(self):
-        """Register a new employer"""
-        data = request.get_json()  # Get the JSON data from the request
-        return EmployerService.register_employer(data)
+        """Handle employer registration"""
+        data = request.get_json()
+
+        # Check for required fields
+        required_fields = ['company_name', 'email', 'phone', 'about', 'password']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return {"error": f"'{field}' is required"}, 400
+
+        try:
+            # Use EmployerService to create a new employer
+            new_employer = EmployerService.create_employer(data)
+            return new_employer, 201  # Assuming create_employer returns a dict
+        except BadRequest as e:
+            return {"error": str(e)}, 400
+        except Exception as e:
+            return {"error": "Employer registration failed"}, 500
 
 class EmployerSelfResource(Resource):
     @jwt_required()

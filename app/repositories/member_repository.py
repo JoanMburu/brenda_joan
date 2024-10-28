@@ -80,10 +80,16 @@ class MemberRepository:
 
     @staticmethod
     def get_member_by_email(email):
-        """Fetch a member by their email"""
         return Member.query.filter_by(email=email).first()
 
     @staticmethod
     def get_all_members():
         """Retrieve all members from the database."""
         return Member.query.filter_by(is_active=True).all()  
+    
+    @staticmethod
+    def save(member):
+        """Save a member to the database."""
+        db.session.add(member)
+        db.session.commit()
+        return member

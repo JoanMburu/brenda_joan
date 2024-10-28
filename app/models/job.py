@@ -1,3 +1,4 @@
+# app/models/job.py
 from app import db
 from datetime import datetime
 
@@ -12,7 +13,8 @@ class Job(db.Model):
     
     # Relationship with Employer
     employer_id = db.Column(db.Integer, db.ForeignKey('employers.id'), nullable=False)
-    
+    employer = db.relationship("Employer", backref="jobs")  # Added relationship to access employer info
+
     # Timestamp fields
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Set on creation
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)  # Updated when record is modified
@@ -26,5 +28,6 @@ class Job(db.Model):
             "deadline": self.deadline.isoformat() if self.deadline else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "employer_id": self.employer_id  # Employer who posted the job
+            "employer_id": self.employer_id,  # Employer ID
+            "company_name": self.employer.company_name if self.employer else None  # Include employer's company name
         }

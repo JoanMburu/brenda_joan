@@ -6,9 +6,36 @@ from app.repositories.member_repository import MemberRepository
 from app.services.member_services import MemberService
 from werkzeug.exceptions import BadRequest
 from app import db
+from app.services.log_service import LogService
+from app.utils.validations import validate_required_fields
+from flask_cors import cross_origin
+
 
 member_bp = Blueprint('member_bp', __name__)
 member_api = Api(member_bp)
+
+
+class MemberRegistrationResource(Resource):
+    def post(self):
+        """Handle member registration."""
+        data = request.get_json()
+        required_fields = ['name', 'email', 'phone', 'password']
+        is_valid, error = validate_required_fields(data, required_fields)
+
+        if not is_valid:
+            return {"error": error}, 400
+
+        try:
+            new_member = MemberService.create_member(
+                name=data['name'],
+                phone=data['phone'],
+                email=data['email'],
+                password=data['password'],
+                role='member'
+            )
+            return {"message": "Member registered successfully", "member": new_member.to_dict()}, 201
+        except Exception as e:
+            return {"error": str(e)}, 500
 
 class MemberListResource(Resource):
     @jwt_required()
@@ -38,7 +65,7 @@ class MemberResource(Resource):
         
         if current_user['role'] == 'member' and current_user['id'] != id:
             return {"error": "Unauthorized"}, 403        
-
+        LogService.log_action(f"{member.name} viewed his profile")
         return member.to_dict(), 200
 
     @jwt_required()
@@ -184,7 +211,28 @@ class CreateMemberResource(Resource):
         db.session.commit()
 
         return new_member.to_dict(), 201
+    
+class ApplicationsResource(Resource):
+    @jwt_required()
+    @cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+    def get(self):
+        current_user = get_jwt_identity()
+        if current_user['role'] != 'member':
+            return {"error": "Unauthorized"}, 403
 
+        applications = MemberService.get_applications(member_id=current_user['id'])
+        return {"applications": applications}, 200
+
+class MemberSavedJobsResource(Resource):
+    @jwt_required()
+    @cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+    def get(self):
+        current_user = get_jwt_identity()
+        if current_user['role'] != 'member':
+            return {"error": "Unauthorized"}, 403
+
+        saved_jobs = MemberService.get_saved_jobs_by_member(member_id=current_user['id'])
+        return {"saved_jobs": saved_jobs}, 200
 
 
 # Add resources to the API
@@ -195,4 +243,6 @@ member_api.add_resource(RestoreMemberResource, '/<int:id>/restore')
 member_api.add_resource(ChangeRoleResource, '/<int:id>/role')
 member_api.add_resource(CreateMemberResource, '/')
 member_api.add_resource(SoftDeleteMemberResource, '/<int:id>/delete')
+member_api.add_resource(MemberSavedJobsResource, '/members/saved-jobs')
+member_api.add_resource(ApplicationsResource, '/member/applications')
 

@@ -2,6 +2,8 @@ from app.models.member import Member
 from app.repositories.member_repository import MemberRepository
 from werkzeug.exceptions import BadRequest
 from app.services.log_service import LogService
+from app.repositories.job_application_repository import JobApplicationRepository
+from app.repositories.saved_jobs_repository import SavedJobsRepository
 
 class MemberService:
     @staticmethod
@@ -21,7 +23,7 @@ class MemberService:
         MemberRepository.save(new_member)
 
         # Log the action
-        LogService.log_action(f"Admin created member '{new_member.name}'")
+        LogService.log_action(f"New member '{new_member.name}' registered")
 
         return new_member
 
@@ -110,6 +112,25 @@ class MemberService:
         if not member:
             raise BadRequest(f"Member with ID {member_id} not found")
 
-        # Log the action
-        LogService.log_action(f"Admin viewed member '{member.name}'")
-        return member.to_dict()
+        # Log the action before converting the member object to a dictionary
+        LogService.log_action(f"{member.name} viewed his profile")
+
+        return member.to_dict()  # Convert to dictionary after logging
+    
+    @staticmethod
+    def get_saved_jobs_by_member(member_id):
+        """Fetch saved jobs for a specific member."""
+        LogService.log_action(f"Fetching saved jobs for member ID {member_id}")
+        saved_jobs = SavedJobsRepository.get_saved_jobs_by_member(member_id)
+        if not saved_jobs:
+            LogService.log_action("No saved jobs found")
+        return [job.to_dict() for job in saved_jobs] if saved_jobs else []
+
+    @staticmethod
+    def get_applications(member_id):
+        """Fetch job applications for a specific member."""
+        LogService.log_action(f"Fetching applications for member ID {member_id}")
+        applications = JobApplicationRepository.get_applications_by_member(member_id)
+        if not applications:
+            LogService.log_action("No applications found")
+        return [app.to_dict() for app in applications] if applications else []

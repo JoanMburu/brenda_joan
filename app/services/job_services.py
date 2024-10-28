@@ -1,6 +1,7 @@
 from app.repositories.job_repository import JobRepository
 from datetime import datetime
 from app.services.log_service import LogService
+from app.repositories.job_application_repository import JobApplicationRepository
 
 class JobService:
     @staticmethod
@@ -129,3 +130,21 @@ class JobService:
             return [job.to_dict() for job in jobs], 200  # Return list of jobs as dictionaries
         except Exception as e:
             return {"error": f"Failed to retrieve employer's jobs: {str(e)}"}, 500
+
+    @staticmethod
+    def get_jobs_with_application_status(member_id):
+        """Retrieve all jobs with the application status for a specific member."""
+        try:
+            jobs = JobRepository.get_all_jobs()
+            job_list = []
+
+            for job in jobs:
+                application = JobApplicationRepository.get_application_by_member_and_job(member_id, job.id)
+                job_dict = job.to_dict()
+                job_dict['applied'] = bool(application)  # True if the member has applied, False otherwise
+                job_list.append(job_dict)
+
+            LogService.log_action(f"Member {member_id} viewed all jobs with application status")
+            return job_list, 200
+        except Exception as e:
+            return {"error": f"Failed to retrieve jobs: {str(e)}"}, 500

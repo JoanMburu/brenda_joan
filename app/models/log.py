@@ -9,6 +9,7 @@ class Log(db.Model):
     user_role = db.Column(db.String(50), nullable=True)  # e.g., admin, employer, member
     action = db.Column(db.String(255), nullable=False)  # Description of the action performed
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)  # When the action was logged
+    user_role = db.Column(db.String(50), nullable=False) 
 
     def to_dict(self):
         return {

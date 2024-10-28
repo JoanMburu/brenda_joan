@@ -6,27 +6,6 @@ from app.services.employer_services import EmployerService
 from app.utils.authentication import authenticate_admin, authenticate_employer
 
 class JobResource(Resource):
-    # @jwt_required()
-    # @authenticate_employer()
-    # def post(self):
-    #     """Post a new job for the employer."""
-    #     data = request.get_json()
-    #     current_user = get_jwt_identity()
-
-    #     # Ensure current_user is a dict and contains 'id'
-    #     if not isinstance(current_user, dict) or 'id' not in current_user:
-    #         return {"msg": "Invalid user data"}, 400
-
-    #     employer = EmployerService.get_employer_by_id(current_user['id'])
-    #     if not employer:
-    #         return {"msg": "Employer not found"}, 404
-
-    #     try:
-    #         job, status_code = JobService.post_job(data, employer.id)
-    #         return job, status_code
-    #     except Exception as e:
-    #         return {"error": str(e)}, 500  # Ensure proper error handling and JSON response
-
     @jwt_required()
     @authenticate_employer()
     def post(self):
@@ -36,7 +15,7 @@ class JobResource(Resource):
         current_user = get_jwt_identity()
         employer = EmployerService.get_employer_by_id(current_user['id'])
         if not employer:
-            return {"msg": "Employer not found"}, 404
+            return {"msg": "Employer not found"}, 404    
 
         try:
             job, status_code = JobService.post_job(data, employer.id)
@@ -52,7 +31,7 @@ class JobResource(Resource):
         except Exception as e:
             return {"error": str(e)}, 500
         
-    @jwt_required()
+
     def get(self):
         """Get all jobs."""
         try:
@@ -108,5 +87,17 @@ class SingleJobResource(Resource):
         else:
             # Other roles are not allowed to delete jobs
             return {"error": "Unauthorized"}, 403
-        
+
+class MemberJobListResource(Resource):
+    @jwt_required()
+    def get(self):
+        """Get all jobs with application status for the logged-in member."""
+        current_user = get_jwt_identity()
+
+        # Ensure that the user is a member
+        if current_user['role'] != 'member':
+            return {"error": "Only members can view this list"}, 403
+
+        # Fetch jobs with application status
+        return JobService.get_jobs_with_application_status(current_user['id'])     
    
