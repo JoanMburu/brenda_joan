@@ -1,13 +1,14 @@
 // src/pages/AllJobs.jsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { useNavigate } from 'react-router-dom';
 import { useUserContext } from '../context/UserContext';
 
 const AllJobs = () => {
-  const { token } = useUserContext();
-  const navigate = useNavigate(); // Initialize navigate function
-  const [jobDetails, setJobDetails] = useState([]); // Array to store jobs with employer names
+  const { token, user } = useUserContext(); // Access token and user context
+  const navigate = useNavigate();
+  const [jobDetails, setJobDetails] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -19,8 +20,6 @@ const AllJobs = () => {
           },
           withCredentials: true,
         });
-
-        console.log('API Response:', response.data);
 
         if (Array.isArray(response.data)) {
           await fetchEmployerNames(response.data);
@@ -61,13 +60,19 @@ const AllJobs = () => {
     fetchJobs();
   }, [token]);
 
+  const handleApplyClick = (jobId) => {
+    if (!user) {
+      // Redirect to login if not authenticated, with `applyRedirect` set
+      navigate('/login', { state: { applyRedirect: `/apply/${jobId}` } });
+    } else {
+      // Navigate directly to application form if authenticated
+      navigate(`/apply/${jobId}`);
+    }
+  };
+
   const filteredJobs = jobDetails.filter((job) =>
     job.title && job.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleApplyClick = (jobId) => {
-    navigate(`/apply/${jobId}`); // Redirect to the application form with the job ID
-  };
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
@@ -93,9 +98,6 @@ const AllJobs = () => {
               className="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1"
             >
               <h2 className="text-xl font-semibold text-gray-800 mb-2">{job.title || 'Job Title'}</h2>
-              {/* <p className="text-gray-600 mb-4">
-                <strong>Employer:</strong> {job.employer_name || 'Unknown Employer'}
-              </p> */}
               <p className="text-gray-600 mb-4">
                 <strong>Location:</strong> {job.location || 'Remote'}
               </p>
@@ -109,16 +111,8 @@ const AllJobs = () => {
                 <strong>Posted:</strong> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'N/A'}
               </p>
 
-              {/* View Details button (optional, for additional job details) */}
               <button
-                className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
-              >
-                View Details
-              </button>
-
-              {/* Apply button */}
-              <button
-                onClick={() => handleApplyClick(job.id)} // Apply button to navigate to application form
+                onClick={() => handleApplyClick(job.id)}
                 className="mt-2 w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition"
               >
                 Apply
